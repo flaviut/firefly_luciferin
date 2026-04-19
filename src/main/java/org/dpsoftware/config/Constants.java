@@ -381,6 +381,7 @@ public class Constants {
     public static final String HTTP = "http://";
     public static final int HTTP_SUCCESS = 200;
     public static final String SERIAL_PORT_AUTO = "AUTO";
+    public static final int ESPRESSIF_USB_VENDOR_ID = 0x303A;
     public static final String SERIAL_PORT_COM = "COM";
     public static final String SERIAL_PORT_TTY = "ttyUSB";
     public static final String PERCENT = "%";

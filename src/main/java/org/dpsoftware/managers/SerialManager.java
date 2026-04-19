@@ -42,6 +42,7 @@ import java.awt.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -72,9 +73,17 @@ public class SerialManager {
     public void initSerial(String portName, String baudrate) {
         if (!MainSingleton.getInstance().config.isWirelessStream() || !portName.isEmpty()) {
             try {
-                SerialPort[] ports = SerialPort.getCommPorts();
+                SerialPort[] ports = Arrays.stream(SerialPort.getCommPorts())
+                        .filter(p -> p.getVendorID() == Constants.ESPRESSIF_USB_VENDOR_ID)
+                        .toArray(SerialPort[]::new);
+                if (ports.length == 0) {
+                    log.error("No Espressif USB serial device found (vendor ID 0x{}). Connect a Glow Worm Luciferin device and restart Firefly Luciferin.",
+                            Integer.toHexString(Constants.ESPRESSIF_USB_VENDOR_ID).toUpperCase());
+                    MainSingleton.getInstance().communicationError = true;
+                    return;
+                }
                 int numberOfSerialDevices = 0;
-                if (ports != null && ports.length > 0) {
+                if (ports.length > 0) {
                     numberOfSerialDevices = ports.length;
                     for (SerialPort port : ports) {
                         if (MainSingleton.getInstance().config.getOutputDevice().equals(port.getSystemPortName())
@@ -464,7 +473,9 @@ public class SerialManager {
      */
     public Map<String, Boolean> getAvailableDevices() {
         Map<String, Boolean> availableDevice = new HashMap<>();
-        SerialPort[] ports = SerialPort.getCommPorts();
+        SerialPort[] ports = Arrays.stream(SerialPort.getCommPorts())
+                .filter(p -> p.getVendorID() == Constants.ESPRESSIF_USB_VENDOR_ID)
+                .toArray(SerialPort[]::new);
         for (SerialPort port : ports) {
             if (port.isOpen()) {
                 availableDevice.put(port.getSystemPortName(), false);
